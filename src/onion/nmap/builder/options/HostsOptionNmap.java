@@ -70,7 +70,7 @@ public class HostsOptionNmap extends AbstractOption {
         }
 
         if (randomHosts != null) {
-            options.add(PARAM_RANDOM_HOSTS);
+            options.add(PARAM_RANDOM_HOSTS + " " + randomHosts);
         }
 
         return options;
