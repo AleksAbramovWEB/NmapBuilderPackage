@@ -2,10 +2,11 @@ package onion.nmap.builder.options;
 
 import java.util.ArrayList;
 
-abstract class AbstractOption {
+abstract public class AbstractOption {
 
     protected ArrayList<String> options = new ArrayList<>();
 
-    protected abstract ArrayList<String> getOptions();
+    public abstract ArrayList<String> getOptions();
 
+    public abstract Byte getIndex();
 }

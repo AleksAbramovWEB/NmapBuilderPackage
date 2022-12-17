@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 public class HostsOptionNmap extends AbstractOption {
 
+    final private static Byte INDEX = 0;
+
     final private static String PARAM_RANDOM_HOSTS = "-iR";
     final private static String PARAM_PATH_FILE_HOSTS = "-iL";
     final private static String PARAM_EXCLUDE_HOST = "--exclude";
@@ -51,28 +53,37 @@ public class HostsOptionNmap extends AbstractOption {
     }
 
     @Override
-    protected ArrayList<String> getOptions() {
+    public ArrayList getOptions() {
 
         if (!hosts.isEmpty()) {
-            options.add(String.join(" ", hosts));
+            options.addAll(hosts);
         }
 
         if (!excludedHosts.isEmpty()) {
-            options.add(PARAM_EXCLUDE_HOST + " " + String.join(" ", excludedHosts));
+            options.add(PARAM_EXCLUDE_HOST);
+            options.addAll(excludedHosts);
         }
 
         if (pathFileWithHosts != null) {
-            options.add(PARAM_PATH_FILE_HOSTS + " " + pathFileWithHosts);
+            options.add(PARAM_PATH_FILE_HOSTS);
+            options.add(pathFileWithHosts);
         }
 
         if (pathFileWithExcludedHosts != null) {
-            options.add(PARAM_EXCLUDE_PATH_FILE_HOST + " " + pathFileWithExcludedHosts);
+            options.add(PARAM_EXCLUDE_PATH_FILE_HOST);
+            options.add(pathFileWithExcludedHosts);
         }
 
         if (randomHosts != null) {
-            options.add(PARAM_RANDOM_HOSTS + " " + randomHosts);
+            options.add(PARAM_RANDOM_HOSTS);
+            options.add(randomHosts.toString());
         }
 
         return options;
+    }
+
+    @Override
+    public Byte getIndex() {
+        return INDEX;
     }
 }
