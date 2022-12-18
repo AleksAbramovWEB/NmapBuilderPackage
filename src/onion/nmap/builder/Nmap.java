@@ -1,40 +1,55 @@
 package onion.nmap.builder;
 
-import onion.nmap.builder.options.AbstractOption;
-import onion.nmap.builder.options.HostsOptionNmap;
+import onion.nmap.builder.options.AbstractOptionNmap;
+import onion.nmap.builder.results.ScanResultNmap;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.JAXBException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Nmap {
 
     private static final String NMAP_SHELL_ALIAS = "nmap";
     private static final String DOUBLE_VERBALIZATION = "-vv";
-    private static final String VERBALIZATION = "-v";
+    private static final String FORMAT_XML = "-oX";
+    private static final String FORMAT_DATE_FILE_NAME = "dd-MM-yyyy::HH:mm:ss";
+    private static final String EXTENSION_XML = ".xsl";
 
-    protected AbstractOption[] options    = new AbstractOption[4];
+    protected static String pathFolderOutputFile = "ResultsNmapScan/";
 
-    protected ArrayList<String> downHosts = new ArrayList<>();
+    protected AbstractOptionNmap[] options = new AbstractOptionNmap[4];
 
-    protected ArrayList<FoundedHost> foundedHosts = new ArrayList<>();
+    private String outputFileXML = null;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws JAXBException {
 
-        String[] hosts = {"192.168.0.178", "192.168.0.1", "192.168.0.15", "192.168.0.25"};
+        ScanResultNmap scanResultNmap = new ScanResultNmap(pathFolderOutputFile + "18-12-2022::16:06:31.xsl");
 
-        HostsOptionNmap hostsOptionNmap = new HostsOptionNmap();
-        hostsOptionNmap.setHosts(hosts);
-
-        Nmap nmap = new Nmap();
-
-        nmap.setOption(hostsOptionNmap)
-            .run();
+//        String[] hosts = {"192.168.0.178", "192.168.0.1", "192.168.0.15", "192.168.0.25"};
+//
+//        HostsOptionNmapNmap hostsOptionNmap = new HostsOptionNmapNmap();
+//        hostsOptionNmap.setHosts(hosts);
+//
+//        Nmap nmap = new Nmap();
+//
+//        nmap.setOption(hostsOptionNmap)
+//            .run();
     }
 
-    public Nmap setOption(AbstractOption option) {
+    public Nmap setOption(AbstractOptionNmap option) {
         options[option.getIndex()] = option;
+
+        return this;
+    }
+
+    public Nmap reset() {
+        outputFileXML = null;
 
         return this;
     }
@@ -47,15 +62,15 @@ public class Nmap {
 
             optionsForCommand.add(NMAP_SHELL_ALIAS);
             optionsForCommand.add(DOUBLE_VERBALIZATION);
-            optionsForCommand.add("-oG");
-            optionsForCommand.add("--reason");
+            optionsForCommand.add(FORMAT_XML);
+            optionsForCommand.add(getOutputFileXML());
 
-            for (AbstractOption option : options) {
+            for (AbstractOptionNmap option : options) {
                 if (option == null) continue;
                 optionsForCommand.addAll(option.getOptions());
             }
 
-            System.out.println(optionsForCommand);
+            System.out.println(String.join(" ", optionsForCommand));
 
             processBuilder.command(optionsForCommand);
 
@@ -67,54 +82,47 @@ public class Nmap {
 
             reader(bufferedReader);
 
-            for (FoundedHost foundedHost : foundedHosts) {
-                System.out.println(foundedHost.getHost());
-            }
-            System.out.println(downHosts);
-
             int exitVal = process.waitFor();
             if (exitVal == 0) {
                 System.exit(0);
             }
 
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void reader(BufferedReader reader) throws IOException {
+    private void reader(@NotNull BufferedReader reader) throws IOException {
 
         String row;
-        FoundedHost foundedHost = null;
 
         while ((row = reader.readLine()) != null) {
             System.out.println(row);
-
-            String host    = UtilsParseData.getHost(row);
-            boolean isHost = host.length() > 0;
-            if (isHost) {
-                if (UtilsParseData.isHostsDown(row)) {
-                    downHosts.add(host);
-
-                    continue;
-                }
-//                System.out.println(row);
-
-                foundedHost = new FoundedHost(host);
-
-                continue;
-            }
-
-            if (foundedHost == null) {
-                continue;
-            }
-
-            if (row.length() == 0) {
-                foundedHosts.add(foundedHost);
-                foundedHost = null;
-            }
-
-//            System.out.println(row);
         }
+    }
+
+    private @NotNull String getOutputFileXML() {
+        if (outputFileXML == null) {
+
+            File directory = new File(pathFolderOutputFile);
+
+            if (!directory.exists()) {
+                directory.mkdir();
+            }
+
+            Date date = new Date();
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(FORMAT_DATE_FILE_NAME);
+
+            stringBuilder.append(pathFolderOutputFile)
+                    .append(simpleDateFormat.format(date))
+                    .append(EXTENSION_XML);
+
+            outputFileXML = stringBuilder.toString();
+        }
+
+        return outputFileXML;
     }
 }

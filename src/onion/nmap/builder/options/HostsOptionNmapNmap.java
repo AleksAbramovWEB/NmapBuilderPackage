@@ -3,7 +3,7 @@ package onion.nmap.builder.options;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class HostsOptionNmap extends AbstractOption {
+public class HostsOptionNmapNmap extends AbstractOptionNmap {
 
     final private static Byte INDEX = 0;
 
@@ -27,27 +27,27 @@ public class HostsOptionNmap extends AbstractOption {
     /** -iR <количество хостов>: выбрать случайные цели */
     protected Integer randomHosts;
 
-    public HostsOptionNmap setPathFileWithHosts(String pathFileWithHosts) {
+    public HostsOptionNmapNmap setPathFileWithHosts(String pathFileWithHosts) {
         this.pathFileWithHosts = pathFileWithHosts;
         return this;
     }
 
-    public HostsOptionNmap setHosts(String[] hosts) {
+    public HostsOptionNmapNmap setHosts(String[] hosts) {
         this.hosts.addAll(Arrays.asList(hosts));
         return this;
     }
 
-    public HostsOptionNmap setHost(String host) {
+    public HostsOptionNmapNmap setHost(String host) {
         this.hosts.add(host);
         return this;
     }
 
-    public HostsOptionNmap setExcludedHosts(ArrayList<String> excludedHosts) {
+    public HostsOptionNmapNmap setExcludedHosts(ArrayList<String> excludedHosts) {
         this.excludedHosts = excludedHosts;
         return this;
     }
 
-    public HostsOptionNmap setRandomHosts(int randomHosts) {
+    public HostsOptionNmapNmap setRandomHosts(int randomHosts) {
         this.randomHosts = randomHosts;
         return this;
     }
