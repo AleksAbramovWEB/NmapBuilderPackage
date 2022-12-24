@@ -1,10 +1,13 @@
 package onion.nmap.builder;
 
 import onion.nmap.builder.options.AbstractOptionNmap;
-import onion.nmap.builder.results.ScanResultNmap;
+import onion.nmap.builder.xml.HostXml;
+import onion.nmap.builder.xml.NmapXml;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -25,11 +28,29 @@ public class Nmap {
 
     protected AbstractOptionNmap[] options = new AbstractOptionNmap[4];
 
-    private String outputFileXML = null;
+    private File outputFileXML = null;
+
+    private String outputPathFileXML = pathFolderOutputFile + "18-12-2022::14:51:23.xsl";
+
+    private NmapXml nmapXmlResult = null;
 
     public static void main(String[] args) throws JAXBException {
 
-        ScanResultNmap scanResultNmap = new ScanResultNmap(pathFolderOutputFile + "18-12-2022::16:06:31.xsl");
+        Nmap nmap = new Nmap();
+        NmapXml nmapXml = nmap.getScanResult();
+        System.out.println(nmapXml.getStartDate());
+        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getUp());
+        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getDown());
+        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getTotal());
+        System.out.println(nmapXml.getRunStats().getFinishedRunstatsXml().getMessage());
+        System.out.println(nmapXml.getRunStats().getFinishedRunstatsXml().getEndDate());
+
+        for (HostXml hostXml : nmapXml.getHosts()) {
+            System.out.println(hostXml.getStatus().getState());
+            System.out.println(hostXml.getStatus().getReason());
+            System.out.println(hostXml.getAddressHost().getAddress());
+            System.out.println(hostXml.getAddressHost().getType());
+        }
 
 //        String[] hosts = {"192.168.0.178", "192.168.0.1", "192.168.0.15", "192.168.0.25"};
 //
@@ -63,7 +84,7 @@ public class Nmap {
             optionsForCommand.add(NMAP_SHELL_ALIAS);
             optionsForCommand.add(DOUBLE_VERBALIZATION);
             optionsForCommand.add(FORMAT_XML);
-            optionsForCommand.add(getOutputFileXML());
+            optionsForCommand.add(this.getOutputPathFileXML());
 
             for (AbstractOptionNmap option : options) {
                 if (option == null) continue;
@@ -92,6 +113,18 @@ public class Nmap {
         }
     }
 
+    public NmapXml getScanResult() throws JAXBException {
+        if (nmapXmlResult == null) {
+            File fileXML = this.getOutputFileXML();
+
+            JAXBContext jaxbContext = JAXBContext.newInstance(NmapXml.class);
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            nmapXmlResult = (NmapXml) jaxbUnmarshaller.unmarshal(fileXML);
+        }
+
+        return nmapXmlResult;
+    }
+
     private void reader(@NotNull BufferedReader reader) throws IOException {
 
         String row;
@@ -101,9 +134,21 @@ public class Nmap {
         }
     }
 
-    private @NotNull String getOutputFileXML() {
+    private File getOutputFileXML() {
         if (outputFileXML == null) {
 
+            outputFileXML = new File(this.getOutputPathFileXML());
+
+            if(!outputFileXML.exists()) {
+                throw new RuntimeException("Результаты сканирования не найдены: " + this.getOutputPathFileXML());
+            }
+        }
+
+        return outputFileXML;
+    }
+
+    private String getOutputPathFileXML() {
+        if (outputPathFileXML == null) {
             File directory = new File(pathFolderOutputFile);
 
             if (!directory.exists()) {
@@ -120,9 +165,10 @@ public class Nmap {
                     .append(simpleDateFormat.format(date))
                     .append(EXTENSION_XML);
 
-            outputFileXML = stringBuilder.toString();
+
+            outputPathFileXML = stringBuilder.toString();
         }
 
-        return outputFileXML;
+        return outputPathFileXML;
     }
 }
