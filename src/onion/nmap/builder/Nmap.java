@@ -3,6 +3,7 @@ package onion.nmap.builder;
 import onion.nmap.builder.options.AbstractOptionNmap;
 import onion.nmap.builder.xml.HostXml;
 import onion.nmap.builder.xml.NmapXml;
+import onion.nmap.builder.xml.host.port.PortHostXml;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBContext;
@@ -50,6 +51,20 @@ public class Nmap {
             System.out.println(hostXml.getStatus().getReason());
             System.out.println(hostXml.getAddressHost().getAddress());
             System.out.println(hostXml.getAddressHost().getType());
+            System.out.println(hostXml.getPortsHostXml());
+
+            if (hostXml.getPortsHostXml() == null || hostXml.getPortsHostXml().getPortsHostXml() == null) {
+                continue;
+            }
+
+            for (PortHostXml portHostXml : hostXml.getPortsHostXml().getPortsHostXml()) {
+                System.out.println(portHostXml.getPortId());
+                System.out.println(portHostXml.getProtocol());
+                System.out.println(portHostXml.getServicePortHostXml().getMethod());
+                System.out.println(portHostXml.getServicePortHostXml().getName());
+                System.out.println(portHostXml.getStatePortHostXml().getReason());
+                System.out.println(portHostXml.getStatePortHostXml().getStatus());
+            }
         }
 
 //        String[] hosts = {"192.168.0.178", "192.168.0.1", "192.168.0.15", "192.168.0.25"};
