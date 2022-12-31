@@ -1,7 +1,7 @@
 package onion.nmap.builder;
 
 import onion.nmap.builder.options.AbstractOptionNmap;
-import onion.nmap.builder.xml.HostXml;
+import onion.nmap.builder.xml.host.HostXml;
 import onion.nmap.builder.xml.NmapXml;
 import onion.nmap.builder.xml.host.port.PortHostXml;
 import org.jetbrains.annotations.NotNull;
@@ -35,25 +35,16 @@ public class Nmap {
 
     private NmapXml nmapXmlResult = null;
 
+    private boolean verbalization = true;
+
     public static void main(String[] args) throws JAXBException {
 
         Nmap nmap = new Nmap();
-        NmapXml nmapXml = nmap.getScanResult();
-        System.out.println(nmapXml.getStartDate());
-        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getUp());
-        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getDown());
-        System.out.println(nmapXml.getRunStats().getHostsRunstatsXml().getTotal());
-        System.out.println(nmapXml.getRunStats().getFinishedRunstatsXml().getMessage());
-        System.out.println(nmapXml.getRunStats().getFinishedRunstatsXml().getEndDate());
+        NmapXml nmapXml = nmap.getScanResultXml();
 
         for (HostXml hostXml : nmapXml.getHosts()) {
-            System.out.println(hostXml.getStatus().getState());
-            System.out.println(hostXml.getStatus().getReason());
-            System.out.println(hostXml.getAddressHost().getAddress());
-            System.out.println(hostXml.getAddressHost().getType());
-            System.out.println(hostXml.getPortsHostXml());
 
-            if (hostXml.getPortsHostXml() == null || hostXml.getPortsHostXml().getPortsHostXml() == null) {
+            if (!hostXml.hasPortsHostXml() || !hostXml.getPortsHostXml().hasPortsHostXml()) {
                 continue;
             }
 
@@ -81,6 +72,11 @@ public class Nmap {
     public Nmap setOption(AbstractOptionNmap option) {
         options[option.getIndex()] = option;
 
+        return this;
+    }
+
+    public Nmap setVerbalization(boolean verbalization) {
+        this.verbalization = verbalization;
         return this;
     }
 
@@ -112,11 +108,18 @@ public class Nmap {
 
             Process process = processBuilder.start();
 
-            BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(process.getInputStream())
+            if (isVerbalization()) {
+                BufferedReader bufferedReader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream())
+                );
+                reader(bufferedReader);
+            }
+
+            BufferedReader bufferedReaderError = new BufferedReader(
+                new InputStreamReader(process.getErrorStream())
             );
 
-            reader(bufferedReader);
+            readerError(bufferedReaderError);
 
             int exitVal = process.waitFor();
             if (exitVal == 0) {
@@ -128,7 +131,7 @@ public class Nmap {
         }
     }
 
-    public NmapXml getScanResult() throws JAXBException {
+    protected NmapXml getScanResultXml() throws JAXBException {
         if (nmapXmlResult == null) {
             File fileXML = this.getOutputFileXML();
 
@@ -146,6 +149,15 @@ public class Nmap {
 
         while ((row = reader.readLine()) != null) {
             System.out.println(row);
+        }
+    }
+
+    private void readerError(@NotNull BufferedReader readerError) throws IOException {
+
+        String row;
+
+        while ((row = readerError.readLine()) != null) {
+            throw new RuntimeException(row);
         }
     }
 
@@ -185,5 +197,9 @@ public class Nmap {
         }
 
         return outputPathFileXML;
+    }
+
+    private boolean isVerbalization() {
+        return verbalization;
     }
 }

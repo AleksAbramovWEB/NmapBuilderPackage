@@ -17,4 +17,8 @@ public class PortsHostXml {
     public void setPortsHostXml(List<PortHostXml> portHostXml) {
         this.portHostXml = portHostXml;
     }
+
+    public boolean hasPortsHostXml() {
+        return portHostXml != null;
+    }
 }

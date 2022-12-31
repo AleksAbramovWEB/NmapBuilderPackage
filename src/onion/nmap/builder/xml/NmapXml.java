@@ -1,6 +1,8 @@
 package onion.nmap.builder.xml;
 
 import onion.nmap.builder.xml.adapters.UnixDateAdapter;
+import onion.nmap.builder.xml.host.HostXml;
+import onion.nmap.builder.xml.runstats.RunstatsXml;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

@@ -1,7 +1,4 @@
-package onion.nmap.builder.xml;
-
-import onion.nmap.builder.xml.runstats.FinishedRunstatsXml;
-import onion.nmap.builder.xml.runstats.HostsRunstatsXml;
+package onion.nmap.builder.xml.runstats;
 
 import javax.xml.bind.annotation.XmlElement;
 
