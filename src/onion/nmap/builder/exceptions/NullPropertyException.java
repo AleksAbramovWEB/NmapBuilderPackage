@@ -6,13 +6,8 @@ public class NullPropertyException extends RuntimeException {
 
     public static final String RESULT_HOST_DATE_START = "host scan start date";
     public static final String RESULT_HOST_DATE_END = "host scan end date";
-    public static final String RESULT_HOST_PORT_NOT_OPEN = "port %s is close";
 
     public NullPropertyException(String message) {
-        super(HEADER + " (" + message + ")");
-    }
-
-    public NullPropertyException(String message, Object ...obj) {
         super(HEADER + " (" + message + ")");
     }
 }

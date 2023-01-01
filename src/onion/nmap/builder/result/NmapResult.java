@@ -4,6 +4,7 @@ import onion.nmap.builder.xml.NmapXml;
 import onion.nmap.builder.xml.host.HostXml;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +33,7 @@ public class NmapResult {
 
     private final HashSet<String> hostDownIpAddresses = new HashSet<>();
 
-    NmapResult(NmapXml nmapXml) {
+    public NmapResult(@NotNull NmapXml nmapXml) {
         startDate = nmapXml.getStartDate();
         endDate = nmapXml.getRunStats()
                 .getFinishedRunstatsXml()
@@ -102,6 +103,10 @@ public class NmapResult {
 
         return hostsUp;
     }
+
+    public @NotNull ArrayList<String> getHostUpIpAddresses(){
+      return new ArrayList<>(getHostsUp().keySet());
+    };
 
     public @NotNull HashMap<String, HostNmapResult> getHostsDown() {
         if (hostsDown == null) {

@@ -1,6 +1,7 @@
 package onion.nmap.builder.result;
 
 import onion.nmap.builder.xml.host.port.PortHostXml;
+import org.jetbrains.annotations.NotNull;
 
 public class PortHostNmapResult {
 
@@ -18,7 +19,7 @@ public class PortHostNmapResult {
 
     private final boolean isOpen;
 
-    PortHostNmapResult(PortHostXml portHostXml) {
+    PortHostNmapResult(@NotNull PortHostXml portHostXml) {
 
         id = portHostXml.getPortId();
 

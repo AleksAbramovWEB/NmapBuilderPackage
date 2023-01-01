@@ -1,10 +1,12 @@
 package onion.nmap.builder.result;
 
 import onion.nmap.builder.exceptions.NullPropertyException;
+import onion.nmap.builder.exceptions.PortIsCloseException;
 import onion.nmap.builder.xml.host.HostXml;
 import onion.nmap.builder.xml.host.port.PortHostXml;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
@@ -29,7 +31,9 @@ public class HostNmapResult {
 
     private final HashMap<Integer, PortHostNmapResult> openPorts = new HashMap<>();
 
-    HostNmapResult(HostXml hostXml) {
+    private ArrayList<Integer> closesPorts = new ArrayList<>();
+
+    HostNmapResult(@NotNull HostXml hostXml) {
 
         startDate = hostXml.getStartDate();
         endDate = hostXml.getEndDate();
@@ -46,14 +50,25 @@ public class HostNmapResult {
         ipVersion = hostXml.getAddressHost()
                 .getType();
 
-        if (!hostXml.hasPortsHostXml() || !hostXml.getPortsHostXml().hasPortsHostXml()) {
+        if (!hostXml.hasPortsHostXml()) {
             return;
         }
 
-        for (PortHostXml portHostXml : hostXml.getPortsHostXml().getPortsHostXml()) {
-            PortHostNmapResult port = new PortHostNmapResult(portHostXml);
-            if (port.isOpen()) {
-                openPorts.put(port.getId(), port);
+        if (hostXml.getPortsHostXml().hasExtraPortsHostXml() && hostXml.getPortsHostXml().getExtraPortHostXml().hasReasonExtraPortHostXml()) {
+            closesPorts = hostXml.getPortsHostXml()
+                    .getExtraPortHostXml()
+                    .getReasonExtraPortHostXml()
+                    .getClosesPortIds();
+        }
+
+        if (hostXml.getPortsHostXml().hasPortsHostXml()) {
+            for (PortHostXml portHostXml : hostXml.getPortsHostXml().getPortsHostXml()) {
+                PortHostNmapResult port = new PortHostNmapResult(portHostXml);
+                if (port.isOpen()) {
+                    openPorts.put(port.getId(), port);
+                } else {
+                    closesPorts.add(port.getId());
+                }
             }
         }
     }
@@ -144,9 +159,13 @@ public class HostNmapResult {
 
     public @NotNull PortHostNmapResult getOpenPort(Integer portId) {
         if (!hasOpenPort(portId)) {
-            throw new NullPropertyException(NullPropertyException.RESULT_HOST_DATE_END);
+            throw new PortIsCloseException(portId);
         }
 
         return openPorts.get(portId);
+    }
+
+    public @NotNull ArrayList<Integer> getClosesPorts() {
+        return closesPorts;
     }
 }
