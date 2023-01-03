@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class PortsOptionNmap extends AbstractOptionNmap {
 
     final private static Byte INDEX = 1;
+    final private static String SCAN_ALL_PORTS = "\"*\"";
     final private static String SCAN_ALL_PORTS_TCP = "-sT";
     final private static String SCAN_ALL_PORTS_UDP = "-sU";
     final private static String SCAN_PORT_CONCRETE = "-p";
@@ -20,6 +21,9 @@ public class PortsOptionNmap extends AbstractOptionNmap {
 
     /** Быстрое сканирование */
     boolean scanSpeed = false;
+
+    /** Сканировать все порты */
+    boolean scanAllPorts = false;
 
     /** Сканировать <число> наиболее распространенных портов */
     Integer topPorts;
@@ -86,6 +90,16 @@ public class PortsOptionNmap extends AbstractOptionNmap {
         return this;
     }
 
+    public AbstractOptionNmap setScanAllPorts(boolean scanAllPorts) {
+        this.scanAllPorts = scanAllPorts;
+        return this;
+    }
+
+    public AbstractOptionNmap setScanAllPorts() {
+        this.scanAllPorts = true;
+        return this;
+    }
+
     @Override
     public ArrayList<String> getOptions() {
         if (scanAllPortsTCP) {
@@ -100,6 +114,9 @@ public class PortsOptionNmap extends AbstractOptionNmap {
         if (!ports.isEmpty()) {
             options.add(SCAN_PORT_CONCRETE);
             options.add(String.join(",", ports));
+        } else if (scanAllPorts) {
+            options.add(SCAN_PORT_CONCRETE);
+            options.add(SCAN_ALL_PORTS);
         }
         if (!excludePorts.isEmpty()) {
             options.add(EXCLUDE_PORTS);

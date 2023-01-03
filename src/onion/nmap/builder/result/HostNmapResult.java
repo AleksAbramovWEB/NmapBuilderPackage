@@ -2,6 +2,7 @@ package onion.nmap.builder.result;
 
 import onion.nmap.builder.exceptions.NullPropertyException;
 import onion.nmap.builder.exceptions.PortIsCloseException;
+import onion.nmap.builder.xml.host.AddressHostXml;
 import onion.nmap.builder.xml.host.HostXml;
 import onion.nmap.builder.xml.host.port.PortHostXml;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,7 @@ public class HostNmapResult {
     private static final String STATUS_UP = "up";
     private static final String IP_VERSION_FOUR = "ipv4";
     private static final String IP_VERSION_SIX = "ipv6";
+    private static final String MAC = "mac";
 
     private final Date startDate;
 
@@ -25,13 +27,19 @@ public class HostNmapResult {
 
     private final String reason;
 
-    private final String ipAddress;
+    private String ipAddressV4;
 
-    private final String ipVersion;
+    private String ipAddressV6;
+
+    private String macAddress;
+
+    private String macVendor = "";
 
     private final HashMap<Integer, PortHostNmapResult> openPorts = new HashMap<>();
 
     private ArrayList<Integer> closesPorts = new ArrayList<>();
+
+    private OsHostNmapResult os;
 
     HostNmapResult(@NotNull HostXml hostXml) {
 
@@ -44,11 +52,20 @@ public class HostNmapResult {
         reason = hostXml.getStatus()
                 .getReason();
 
-        ipAddress = hostXml.getAddressHost()
-                .getAddress();
+        for (AddressHostXml addressHostXml : hostXml.getAddressesHost()) {
+            switch (addressHostXml.getType()){
+                case IP_VERSION_FOUR -> ipAddressV4 = addressHostXml.getAddress();
+                case IP_VERSION_SIX -> ipAddressV6 = addressHostXml.getAddress();
+                case MAC -> {
+                    macAddress = addressHostXml.getAddress();
+                    macVendor = addressHostXml.getVendor();
+                }
+            }
+        }
 
-        ipVersion = hostXml.getAddressHost()
-                .getType();
+        if (hostXml.hasOsHostXml()) {
+            os = new OsHostNmapResult(hostXml.getOsHostXml());
+        }
 
         if (!hostXml.hasPortsHostXml()) {
             return;
@@ -84,14 +101,42 @@ public class HostNmapResult {
         }
         HostNmapResult hostNmapResult = (HostNmapResult) obj;
 
-        return hostNmapResult.getIpAddress().equals(
-                getIpAddress()
-        );
+        if (hastIpAddressV4() && hostNmapResult.hastIpAddressV4()) {
+            return hostNmapResult.getIpAddressV4().equals(
+                    getIpAddressV4()
+            );
+        }
+
+        if (hastIpAddressV6() && hostNmapResult.hastIpAddressV6()) {
+            return hostNmapResult.getIpAddressV6().equals(
+                    getIpAddressV6()
+            );
+        }
+
+        return false;
     }
 
     @Override
     public int hashCode() {
-        return 31 * Objects.hash(getIpAddress());
+        if (hastIpAddressV4()) {
+            return 31 * Objects.hash(getIpAddressV4());
+        }
+        if (hastIpAddressV6()) {
+            return 31 * Objects.hash(getIpAddressV6());
+        }
+
+        return super.hashCode();
+    }
+
+    public boolean hasOs() {
+        return os != null;
+    }
+
+    public @NotNull OsHostNmapResult getOs() {
+        if (!hasOs()) {
+            throw new NullPropertyException(NullPropertyException.RESULT_HOST_OS);
+        }
+        return os;
     }
 
     public boolean hasStartDate() {
@@ -125,28 +170,12 @@ public class HostNmapResult {
         return reason;
     }
 
-    public @NotNull String getIpAddress() {
-        return ipAddress;
-    }
-
-    public @NotNull String getIpVersion() {
-        return ipVersion;
-    }
-
     public boolean isUp() {
         return isUp;
     }
 
     public boolean isDown() {
         return !isUp;
-    }
-
-    public boolean isIpVersion4(){
-        return ipVersion.equals(IP_VERSION_FOUR);
-    }
-
-    public boolean isIpVersion6(){
-        return ipVersion.equals(IP_VERSION_SIX);
     }
 
     public HashMap<Integer, PortHostNmapResult> getOpenPorts() {
@@ -167,5 +196,42 @@ public class HostNmapResult {
 
     public @NotNull ArrayList<Integer> getClosesPorts() {
         return closesPorts;
+    }
+
+    public boolean hastIpAddressV4() {
+        return ipAddressV4 != null;
+    }
+
+    public @NotNull String getIpAddressV4() {
+        if (!hastIpAddressV4()) {
+            throw new NullPropertyException(NullPropertyException.RESULT_HOST_IP_VERSION_FOR);
+        }
+        return ipAddressV4;
+    }
+
+    public boolean hastIpAddressV6() {
+        return ipAddressV6 != null;
+    }
+
+    public @NotNull String getIpAddressV6() {
+        if (!hastIpAddressV6()) {
+            throw new NullPropertyException(NullPropertyException.RESULT_HOST_IP_VERSION_SIX);
+        }
+        return ipAddressV6;
+    }
+
+    public boolean hasMacAddress() {
+        return macAddress != null;
+    }
+
+    public @NotNull String getMacAddress() {
+        if (!hasMacAddress()) {
+            throw new NullPropertyException(NullPropertyException.RESULT_HOST_MAC_ADDRESS);
+        }
+        return macAddress;
+    }
+
+    public String getMacVendor() {
+        return macVendor;
     }
 }

@@ -2,8 +2,6 @@ package onion.nmap.builder;
 
 import onion.nmap.builder.exceptions.SudoNmapException;
 import onion.nmap.builder.options.AbstractOptionNmap;
-import onion.nmap.builder.options.HostsOptionNmap;
-import onion.nmap.builder.options.OsOptionNmap;
 import onion.nmap.builder.result.NmapResult;
 import onion.nmap.builder.xml.NmapXml;
 import org.jetbrains.annotations.Contract;
@@ -38,11 +36,10 @@ public class Nmap {
 
     protected static String sudoPassword;
 
-    protected AbstractOptionNmap[] options = new AbstractOptionNmap[4];
+    protected AbstractOptionNmap[] options = new AbstractOptionNmap[5];
 
     private File outputFileXML = null;
 
-//    private String outputPathFileXML = pathFolderOutputFile + "18-12-2022::14:51:23.xsl";
     private String outputPathFileXML = null;
 
     private NmapXml nmapXmlResult = null;
@@ -50,34 +47,6 @@ public class Nmap {
     private boolean verbalization = true;
 
     private boolean sudo = false;
-
-    public static void main(String[] args) {
-
-        Nmap nmap = new Nmap();
-
-        Nmap.setSudoPassword("********");
-
-        nmap.setVerbalization(true)
-            .setSudo();
-
-        nmap.setOption(new OsOptionNmap().setOsScanGuess());
-        nmap.setOption(new HostsOptionNmap().setHosts(new String[]{"192.168.0.1", "192.168.0.145", "192.168.0.179"}));
-
-        nmap.run();
-
-        System.out.println("run");
-
-        NmapResult nmapResult = nmap.getScanResult();
-
-        nmapResult.getHostsUp().forEach((ip, hostNmapResult) -> {
-            System.out.println(ip);
-            System.out.println(hostNmapResult.getClosesPorts());
-            System.out.println(hostNmapResult.getOpenPorts());
-        });
-
-        System.out.println(nmapResult.getHostUpIpAddresses());
-        System.out.println("exit");
-    }
 
     public static void setSudoPassword(String sudoPassword) {
         Nmap.sudoPassword = sudoPassword;
@@ -100,31 +69,26 @@ public class Nmap {
         return this;
     }
 
-    public void run() {
-        try {
-            String[] command = getCommand();
+    public void run() throws InterruptedException, IOException {
+        String[] command = getCommand();
 
-            Process process = Runtime.getRuntime()
-                    .exec(command);
+        Process process = Runtime.getRuntime()
+                .exec(command);
 
-            if (isVerbalization()) {
-                BufferedReader bufferedReader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream())
-                );
-                reader(bufferedReader);
-            }
-
-            BufferedReader bufferedReaderError = new BufferedReader(
-                new InputStreamReader(process.getErrorStream())
+        if (isVerbalization()) {
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
             );
-
-            readerError(bufferedReaderError);
-
-            process.waitFor();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            reader(bufferedReader);
         }
+
+        BufferedReader bufferedReaderError = new BufferedReader(
+                new InputStreamReader(process.getErrorStream())
+        );
+
+        readerError(bufferedReaderError);
+
+        process.waitFor();
     }
 
     public NmapResult getScanResult() {
@@ -176,6 +140,7 @@ public class Nmap {
 
         for (AbstractOptionNmap option : this.options) {
             if (option == null) continue;
+            option.setSudo(isSudo());
             options.addAll(option.getOptions());
         }
 
@@ -204,7 +169,7 @@ public class Nmap {
         String row;
 
         while ((row = readerError.readLine()) != null) {
-            System.out.println(row);
+            throw new RuntimeException(row);
         }
     }
 

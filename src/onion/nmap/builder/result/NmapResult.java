@@ -4,7 +4,6 @@ import onion.nmap.builder.xml.NmapXml;
 import onion.nmap.builder.xml.host.HostXml;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,15 +22,15 @@ public class NmapResult {
 
     private final String resultMessage;
 
-    private final HashMap<String, HostNmapResult> hosts = new HashMap<>();
+    private final HashMap<Integer, HostNmapResult> hosts = new HashMap<>();
 
-    private HashMap<String, HostNmapResult> hostsUp = null;
+    private HashMap<Integer, HostNmapResult> hostsUp = null;
 
-    private HashMap<String, HostNmapResult> hostsDown = null;
+    private HashMap<Integer, HostNmapResult> hostsDown = null;
 
-    private final HashSet<String> hostUpIpAddresses = new HashSet<>();
+    private final HashSet<Integer> hostUpHashCodes = new HashSet<>();
 
-    private final HashSet<String> hostDownIpAddresses = new HashSet<>();
+    private final HashSet<Integer> hostDownHashCodes = new HashSet<>();
 
     public NmapResult(@NotNull NmapXml nmapXml) {
         startDate = nmapXml.getStartDate();
@@ -53,14 +52,14 @@ public class NmapResult {
 
         for (HostXml hostXml : nmapXml.getHosts()) {
             HostNmapResult hostNmapResult = new HostNmapResult(hostXml);
-            String ip = hostNmapResult.getIpAddress();
-            hosts.put(ip, hostNmapResult);
+            Integer code = hostNmapResult.hashCode();
+            hosts.put(code, hostNmapResult);
 
             if (hostNmapResult.isUp()) {
-                hostUpIpAddresses.add(ip);
+                hostUpHashCodes.add(code);
             }
             if (hostNmapResult.isDown()) {
-                hostDownIpAddresses.add(ip);
+                hostDownHashCodes.add(code);
             }
         }
     }
@@ -89,30 +88,26 @@ public class NmapResult {
         return resultMessage;
     }
 
-    public @NotNull HashMap<String, HostNmapResult> getHosts() {
+    public @NotNull HashMap<Integer, HostNmapResult> getHosts() {
         return hosts;
     }
 
-    public @NotNull HashMap<String, HostNmapResult> getHostsUp() {
+    public @NotNull HashMap<Integer, HostNmapResult> getHostsUp() {
         if (hostsUp == null) {
             hostsUp = new HashMap<>();
-            for (String ip : hostUpIpAddresses) {
-                hostsUp.put(ip, hosts.get(ip));
+            for (Integer code : hostUpHashCodes) {
+                hostsUp.put(code, hosts.get(code));
             }
         }
 
         return hostsUp;
     }
 
-    public @NotNull ArrayList<String> getHostUpIpAddresses(){
-      return new ArrayList<>(getHostsUp().keySet());
-    };
-
-    public @NotNull HashMap<String, HostNmapResult> getHostsDown() {
+    public @NotNull HashMap<Integer, HostNmapResult> getHostsDown() {
         if (hostsDown == null) {
             hostsDown = new HashMap<>();
-            for (String ip : hostDownIpAddresses) {
-                hostsDown.put(ip, hosts.get(ip));
+            for (Integer code : hostDownHashCodes) {
+                hostsDown.put(code, hosts.get(code));
             }
         }
         return hostsDown;

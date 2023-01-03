@@ -1,13 +1,15 @@
 package onion.nmap.builder.options;
 
+import onion.nmap.builder.exceptions.SudoNmapException;
+
 import java.util.ArrayList;
 
 public class OsOptionNmap extends AbstractOptionNmap {
 
     final private static Byte INDEX = 3;
     private static final String OS = "-O";
-    private static final String OSSCAN_LIMIT = "--osscan-limit";
-    private static final String OSSCAN_GUESS = "--osscan-guess";
+    private static final String OS_SCAN_LIMIT = "--osscan-limit";
+    private static final String OS_SCAN_GUESS = "--osscan-guess";
 
     /** Ограничить обнаружение ОС перспективными целями */
     boolean osScanLimit = false;
@@ -37,14 +39,18 @@ public class OsOptionNmap extends AbstractOptionNmap {
 
     @Override
     public ArrayList<String> getOptions() {
+        if (!isSudo()) {
+            throw new SudoNmapException(SudoNmapException.OS_SCAN);
+        }
+
         options.add(OS);
 
         if (osScanLimit) {
-            options.add(OSSCAN_LIMIT);
+            options.add(OS_SCAN_LIMIT);
         }
 
         if (osScanLimit) {
-            options.add(OSSCAN_GUESS);
+            options.add(OS_SCAN_GUESS);
         }
 
         return options;

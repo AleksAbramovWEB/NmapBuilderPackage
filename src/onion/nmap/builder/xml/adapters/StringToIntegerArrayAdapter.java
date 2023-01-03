@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class StringToIntegerArrayAdapter extends XmlAdapter<String, ArrayList<Integer>> {
     @Override
-    public ArrayList unmarshal(String string) throws Exception {
+    public ArrayList unmarshal(String string) {
 
         ArrayList<Integer> integerArray = new ArrayList<>();
 
@@ -31,7 +31,7 @@ public class StringToIntegerArrayAdapter extends XmlAdapter<String, ArrayList<In
     }
 
     @Override
-    public String marshal(ArrayList<Integer> ints) throws Exception {
+    public String marshal(ArrayList<Integer> ints) {
         return ints.toString();
     }
 }
